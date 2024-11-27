@@ -46,7 +46,7 @@ function makeLinkedByRefProps(
 
 // function take items of doubly linked array('children' and 'parents' keys)
 // and create object with all properties needed for tree positioning
-function makeTraversalNodes(nodes: NodeLinkedById[]) {
+export function makeTraversalNodes(nodes: NodeLinkedById[]) {
   const alterableNodes: AlterableLinkedNode[] = nodes
     .map((node) => ({ ...node }))
     .map((node, _, array) => {
@@ -74,9 +74,9 @@ function makeTraversalNodes(nodes: NodeLinkedById[]) {
   );
 
   return {
-    tree: [...treeSet] as TraversalNode[],
+    graph: [...treeSet] as TraversalNode[],
     depth: nodesByLevels.length,
-    leveledGraph: nodesByLevels,
+    leveledGraph: nodesByLevels as TraversalNode[][],
   };
 }
 
@@ -394,15 +394,15 @@ export default function treePositioning(
   const { siblingSpace, meanNodeSize, levelSeparation, subtreeSeparation } =
     constants;
 
-  const { tree, depth } = makeTraversalNodes(nodesArr);
+  const { graph, depth } = makeTraversalNodes(nodesArr);
 
   firstTraversalCarrying(
-    { initNode: tree[0], initLevel: 0 },
+    { initNode: graph[0], initLevel: 0 },
     { siblingSpace, meanNodeSize, subtreeSeparation, maxDepth: depth }
   );
 
   // Return all traversed properties to default false for second traversal
-  tree.forEach((node) => {
+  graph.forEach((node) => {
     node.traversed = false;
     if (node?.parents?.length && node.parents.length > 1) {
       apportionBranchesCarrying({
@@ -413,9 +413,9 @@ export default function treePositioning(
   });
 
   secondTraversalCarrying(
-    { initNode: tree[0], initLevel: 0, initModSum: 0 },
+    { initNode: graph[0], initLevel: 0, initModSum: 0 },
     { levelSeparation: levelSeparation + meanNodeSize } // add maxDepth if needed
   );
 
-  return tree;
+  return graph;
 }

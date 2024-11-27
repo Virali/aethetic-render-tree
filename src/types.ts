@@ -50,7 +50,7 @@ interface LinkedNode<T> extends BasicNodeProps {
 
 interface BasicNodeProps {
   id: number;
-  type: string;
+  type?: string;
 }
 
 interface PositionXY {
