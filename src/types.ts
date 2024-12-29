@@ -1,31 +1,31 @@
 // types for positioning
-export type NodeLinkedById = LinkedNode<number>;
+export type NodeLinkedById = LinkedNode;
 
-export type TraversalNode = NodeLinkedByRef<{
-  leftNeighbor: TraversalNode | null;
+export type TraversalNode = LinkedNode & {
+  leftNeighbor: NodeID | null;
   preliminary: number;
   modifier: number;
   position: PositionXY;
-  caption: string;
   traversed: boolean;
-}>;
+};
 
-export type AlterableLinkedNode = Partial<
-  Omit<
-    TraversalNode,
-    keyof BasicNodeProps | keyof LinkedNode<object> | "leftNeighbor"
-  >
-> &
-  Pick<TraversalNode, keyof BasicNodeProps | keyof LinkedNode<object>> & {
-    leftNeighbor: AlterableLinkedNode | null;
-  };
+export type InternalNode = TraversalNode & { children: NodeID[]; parent: NodeID };
 
-export type PositionedNode = NodeLinkedByRef<{
+export type AlterableNode<T = BasicNodeProps> = BasicNodeProps &
+  Partial<
+    Omit<TraversalNode, "leftNeighbor" | "children" | "parent"> & {
+      leftNeighbor: T | null;
+      children: T[] | null;
+      parent: T | null;
+    }
+  >;
+
+export type AlterableNodeById = AlterableNode<NodeID>;
+
+export type PositionedNode = LinkedNode & {
   position: PositionXY;
   [key: string]: any;
-}>;
-
-export type AnyNodeLinkedByRef = NodeLinkedByRef<{ [key: string]: any }>;
+};
 
 export type DefinitelyTruthy<T> = false extends T
   ? never
@@ -39,19 +39,16 @@ export type DefinitelyTruthy<T> = false extends T
   ? never
   : T;
 
-type NodeLinkedByRef<ExtraProps extends object> = LinkedNode<ExtraProps> &
-  Omit<ExtraProps, keyof LinkedNode<ExtraProps>>;
-
-interface LinkedNode<T> extends BasicNodeProps {
+type LinkedNode<T = NodeID> = BasicNodeProps & {
   children: (T extends object ? LinkedNode<T>[] : T[]) | null;
-  parents: (T extends object ? LinkedNode<T>[] : T[]) | null;
-  subtreeRoot?: T extends object ? LinkedNode<T> : T;
+  parent: (T extends object ? LinkedNode<T> : T) | null;
+} & (T extends object ? T : {});
+
+export interface BasicNodeProps {
+  id: number;
 }
 
-interface BasicNodeProps {
-  id: number;
-  type?: string;
-}
+export type NodeID = BasicNodeProps["id"];
 
 interface PositionXY {
   x: number;

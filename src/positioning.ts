@@ -3,143 +3,43 @@ import {
   TraversalNode,
   PositionedNode,
   DefinitelyTruthy,
-  AnyNodeLinkedByRef,
-  AlterableLinkedNode,
+  AlterableNode,
+  InternalNode,
 } from "./types";
 
-function arrayIdSearch<T extends { id: number }>(array: T[]) {
-  return (id: number) => array.find((item) => item.id === id);
-}
+type NodeGetter = (id: number) => TraversalNode;
 
-function makeLinkedByRefProps(
-  node: NodeLinkedById,
-  findNode: (id: number) => NodeLinkedById | undefined
-) {
-  const [mappedToRefChildren, mappedToRefParents] = [
-    node.children,
-    node.parents,
-  ].map((nodeIds) => {
-    if (nodeIds) {
-      const nodesMapped = nodeIds.map((id) => {
-        const findResult = findNode(id);
-        if (!findResult) {
-          throw new Error(
-            "[LINKS_ERROR] - node id was not found in source array"
-          );
-        }
-        return findResult;
-      });
-
-      return nodesMapped;
-    }
-    return null;
-  });
-  const mappedToRefRoot =
-    node.subtreeRoot !== undefined && findNode(node.subtreeRoot);
-
-  return {
-    children: mappedToRefChildren,
-    parents: mappedToRefParents,
-    ...(mappedToRefRoot && { subtreeRoot: mappedToRefRoot }),
-  };
-}
-
-// function take items of doubly linked array('children' and 'parents' keys)
-// and create object with all properties needed for tree positioning
-export function makeTraversalNodes(nodes: NodeLinkedById[]) {
-  const alterableNodes: AlterableLinkedNode[] = nodes
-    .map((node) => ({ ...node }))
-    .map((node, _, array) => {
-      const findItem = arrayIdSearch(array);
-      return {
-        ...node,
-        ...makeLinkedByRefProps(node, findItem),
-        preliminary: 0,
-        position: { x: 0, y: 0 },
-        modifier: 0,
-      } as AlterableLinkedNode;
-    });
-
-  const nodesByLevels = defineTreeLevels(alterableNodes[0]);
-  const treeSet = new Set<AlterableLinkedNode>();
-
-  nodesByLevels.forEach((level) =>
-    level
-      .filter((node) => !treeSet.has(node))
-      .forEach((node, orderIndex) => {
-        node.leftNeighbor = orderIndex > 0 ? level[orderIndex - 1] : null;
-
-        treeSet.add(node);
-      })
-  );
-
-  return {
-    graph: [...treeSet] as TraversalNode[],
-    depth: nodesByLevels.length,
-    leveledGraph: nodesByLevels as TraversalNode[][],
-  };
-}
-
-function defineTreeLevels<NodeType extends AnyNodeLinkedByRef>(root: NodeType) {
-  const treeLevels = [[root]];
-
-  for (let i = 0; i < treeLevels.length; i++) {
-    const level = treeLevels[i];
-    const nextLevelSet: Set<NodeType> = new Set();
-
-    level.forEach(({ children }) => {
-      if (children) {
-        children.forEach((childNode) => {
-          if (
-            childNode.parents?.every(({ id: parentId }) =>
-              treeLevels
-                .flat()
-                .map(({ id }) => id)
-                .includes(parentId)
-            )
-          ) {
-            nextLevelSet.add(childNode as NodeType);
-          }
-        });
-      }
-    });
-
-    const nextLevelArr = [...nextLevelSet];
-    if (nextLevelArr.length) {
-      treeLevels.push([...nextLevelSet]);
-    }
-  }
-
-  return treeLevels;
-}
-
-function getLeftSibling(node: TraversalNode): TraversalNode | false {
-  if (node.parents === null) return false;
-  const nodeSiblings = node.parents[0].children;
-  const nodeSiblingIndex = nodeSiblings.findIndex(
-    (elem) => elem.id === node.id
-  );
-
-  if (nodeSiblingIndex < 0)
-    throw Error("[LINKS_ERROR] parent doesn't have a linked child");
-
-  if (nodeSiblingIndex > 0) {
-    return nodeSiblings[nodeSiblingIndex - 1];
-  }
-
-  return false;
-}
-
-// carrying for encapsulating some constants
+// carrying to encapsulate some constants
 function firstTraversalCarrying(
-  { initNode, initLevel },
+  {
+    initNode,
+    initLevel,
+    getNode,
+  }: { initNode: TraversalNode; initLevel: number; getNode: NodeGetter },
   { siblingSpace, meanNodeSize, maxDepth, subtreeSeparation }
 ) {
   const apportionSubtrees = apportionSubtreesCarrying({
     maxDepth,
     subtreeSeparation,
     meanNodeSize,
+    getNode,
   });
+
+  function getLeftSibling(node: TraversalNode): TraversalNode | false {
+    if (node.parent === null) return false;
+    const nodeSiblings = getNode(node.parent).children!;
+    const nodeIndex = nodeSiblings?.findIndex((id) => id === node.id);
+
+    if (nodeIndex === undefined || nodeIndex < 0)
+      throw Error("[LINKS_ERROR] parent doesn't have a linked child");
+
+    if (nodeIndex > 0) {
+      return getNode(nodeSiblings[nodeIndex - 1]);
+    }
+
+    return false;
+  }
+
   // Assign a preliminary x-coordinate and modifiers to nodes, modifiers will be used to move node offspring to the right
   return (function firstTraversal(node: TraversalNode, level: number) {
     const { children } = node;
@@ -150,13 +50,15 @@ function firstTraversalCarrying(
     }
 
     if (children?.length) {
-      // that line assumes that parent preliminary will be always calculated after its children
-      children
+      const childrenRefs = children.map((id) => getNode(id));
+      // that procedure assumes that parent preliminary will be always calculated after its children
+      childrenRefs
         .filter(({ traversed }) => !traversed)
         .forEach((child) => firstTraversal(child, level + 1));
+
       const midpoint =
-        (children[0].preliminary + children[children.length - 1].preliminary) /
-        2;
+        (childrenRefs[0].preliminary + childrenRefs.at(-1)!.preliminary) / 2;
+
       if (leftSibling) {
         node.modifier = node.preliminary - midpoint;
         apportionSubtrees(node, level);
@@ -300,23 +202,59 @@ function apportionSubtreesCarrying({
   maxDepth,
   subtreeSeparation,
   meanNodeSize,
+  getNode,
+}: {
+  maxDepth: number;
+  subtreeSeparation: number;
+  meanNodeSize: number;
+  getNode: NodeGetter;
 }) {
+  function getLeftMostDescendant(
+    node: TraversalNode,
+    remainingDepth: number
+  ): TraversalNode | false {
+    if (remainingDepth <= 0) {
+      return node;
+    }
+    if (!node.children) {
+      return false;
+    } else {
+      let leftMost = getLeftMostDescendant(
+        getNode(node.children[0]),
+        --remainingDepth
+      );
+
+      for (let i = 1; i < node.children.length && leftMost === false; i++) {
+        leftMost ===
+          getLeftMostDescendant(getNode(node.children[i]), --remainingDepth);
+      }
+
+      return leftMost;
+    }
+  }
+
   // analyze is there any frictions between subtrees, calculate how far we have to push apart subtrees, then change their preliminary and modifier
   return function apportionSubtrees(node: TraversalNode, level: number) {
-    let leftMost = node.children ? node.children[0] : null;
+    let firstChild = node.children ? getNode(node.children[0]) : null;
     let compareDepth = 1;
     const depthToStop = maxDepth - level;
 
-    while (leftMost && leftMost.leftNeighbor && compareDepth <= depthToStop) {
-      const neighbor = leftMost.leftNeighbor;
+    while (firstChild?.leftNeighbor && compareDepth <= depthToStop) {
+      // Compute the location of Leftmost and where it should be with respect to Neighbor
+      const neighbor = getNode(firstChild.leftNeighbor);
       let leftModSum = 0;
       let rightModSum = 0; // as we have a current node on the right and its level neighbor on the left
-      let leftMostAncestor = leftMost;
+      let leftMostAncestor = firstChild;
       let neighborAncestor = neighbor;
 
       for (let i = 0; i < compareDepth; i++) {
-        [leftMostAncestor] = leftMostAncestor.parents;
-        neighborAncestor = neighborAncestor.parents.at(-1);
+        if (!leftMostAncestor.parent || !neighborAncestor.parent) {
+          throw Error(
+            "Tree structure is broken or max depth exceed tree depth"
+          );
+        }
+        leftMostAncestor = getNode(leftMostAncestor.parent);
+        neighborAncestor = getNode(neighborAncestor.parent);
 
         rightModSum += leftMostAncestor.modifier;
         leftModSum += neighborAncestor.modifier;
@@ -327,17 +265,20 @@ function apportionSubtreesCarrying({
         leftModSum +
         subtreeSeparation +
         meanNodeSize -
-        leftMost.preliminary -
+        firstChild.preliminary -
         rightModSum;
 
       if (moveDistance > 0) {
-        const commonParent = neighborAncestor.parents[0];
-        if (commonParent.id === node.parents[0].id) {
+        if (
+          neighborAncestor.parent &&
+          neighborAncestor.parent === node.parent
+        ) {
+          const commonParent = getNode(neighborAncestor.parent) as InternalNode;
           const neighborIndex = commonParent.children.findIndex(
-            (child) => child.id === neighborAncestor.id
+            (childId) => childId === neighborAncestor.id
           );
           const nodeIndex = commonParent.children.findIndex(
-            (child) => child.id === node.id
+            (childId) => childId === node.id
           );
 
           if (neighborIndex < 0 || nodeIndex < 0) {
@@ -349,7 +290,7 @@ function apportionSubtreesCarrying({
           const portion = moveDistance / (nodeIndex - neighborIndex);
 
           for (let i = nodeIndex; i > neighborIndex; i--) {
-            const childToShift = commonParent.children[i];
+            const childToShift = getNode(commonParent.children[i]);
             childToShift.preliminary += moveDistance;
             childToShift.modifier += moveDistance;
             moveDistance -= portion;
@@ -358,28 +299,13 @@ function apportionSubtreesCarrying({
       }
 
       compareDepth++;
-      if (!leftMost.children?.length) {
-        leftMost = findLeftMostAtDepth(node, compareDepth);
+      if (firstChild.children?.length) {
+        firstChild = getNode(firstChild.children[0]);
       } else {
-        [leftMost] = leftMost.children;
+        firstChild = getLeftMostDescendant(node, maxDepth - compareDepth) as TraversalNode;
       }
     }
   };
-}
-
-function findLeftMostAtDepth(
-  node: TraversalNode,
-  depth: number
-): TraversalNode | undefined {
-  let descendantsAtLevel = node.children; // descendants on current subtree level
-
-  for (let i = 0; i < depth; i++) {
-    descendantsAtLevel = descendantsAtLevel.flatMap(
-      (elem) => elem.children || []
-    );
-  }
-
-  return descendantsAtLevel[0];
 }
 
 export default function treePositioning(
