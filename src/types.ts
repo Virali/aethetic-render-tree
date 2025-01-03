@@ -54,3 +54,14 @@ interface PositionXY {
   x: number;
   y: number;
 }
+
+export type SeparationValues = {
+  siblingSpace: number,
+  meanNodeSize: number,
+  levelSeparation: number,
+  subtreeSeparation: number,
+}
+
+export type NodeGetter = (id: number) => TraversalNode;
+
+export type NodesMap = Record<NodeID, NodeLinkedById>;

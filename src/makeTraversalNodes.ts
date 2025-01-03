@@ -11,18 +11,18 @@ type NodeGetter = (id: number) => AlterableNodeById;
 // Create node as object with all properties needed for tree positioning
 export function makeTraversalNodes(
   nodes: NodeLinkedById[],
+  rootId: number,
   nodeGetter: NodeGetter
 ) {
-  const alterableNodes: AlterableNodeById[] = nodes.map((node) => {
-    return {
-      ...node,
+  nodes.forEach((node) => {
+    Object.assign(node, {
       preliminary: 0,
       position: { x: 0, y: 0 },
       modifier: 0,
-    };
+    });
   });
 
-  const nodesByLevels = defineTreeLevels(alterableNodes[0].id, nodeGetter);
+  const nodesByLevels = defineTreeLevels(rootId, nodeGetter);
 
   nodesByLevels.forEach((level) =>
     level.forEach((nodeId, orderIndex) => {
@@ -32,9 +32,9 @@ export function makeTraversalNodes(
   );
 
   return {
-    nodes: alterableNodes as TraversalNode[],
+    nodes: nodes as TraversalNode[],
     depth: nodesByLevels.length,
-    structuredGraphIds: nodesByLevels,
+    leveledIds: nodesByLevels,
   };
 }
 
@@ -59,34 +59,3 @@ function defineTreeLevels(root: NodeID, nodeGetter: NodeGetter) {
 
   return treeLevels;
 }
-const SIMPLE_IDED_TREE: Record<number, NodeLinkedById> = {
-  1: {
-    id: 1,
-    parent: null,
-    children: [2, 3],
-  },
-  2: {
-    id: 2,
-    parent: 1,
-    children: [4],
-  },
-  3: {
-    id: 3,
-    parent: 1,
-    children: null,
-  },
-  4: {
-    id: 4,
-    parent: 2,
-    children: null,
-  },
-};
-
-console.log(
-  JSON.stringify(
-    makeTraversalNodes(
-      Object.values(SIMPLE_IDED_TREE),
-      (id) => SIMPLE_IDED_TREE[id]
-    )
-  )
-);

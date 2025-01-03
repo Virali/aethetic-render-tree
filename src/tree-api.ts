@@ -1,4 +1,5 @@
-import { NodeLinkedById, NodeID } from "./types";
+import positionTree from "./positioning";
+import { NodeLinkedById, NodeID, NodesMap } from "./types";
 
 const SIMPLE_IDED_TREE: NodeLinkedById[] = [
   {
@@ -24,19 +25,19 @@ const SIMPLE_IDED_TREE: NodeLinkedById[] = [
 ];
 
 class GeneralTree {
-  private nodes: Record<NodeID, NodeLinkedById> = {};
+  private nodes: NodesMap = {};
   private root: NodeLinkedById;
 
-  constructor(root: NodeLinkedById) {
-    this.root = root;
-    this.nodes[root.id] = root;
+  constructor(root: Omit<NodeLinkedById, "parent">) {
+    this.root = { ...root, parent: null };
+    this.nodes[root.id] = this.root;
   }
 
   getRoot() {
     return this.root;
   }
 
-  getNodes() {
+  getAllNodes() {
     return Object.values(this.nodes);
   }
 
@@ -48,17 +49,31 @@ class GeneralTree {
     this.nodes[node.id] = node;
   }
 
-  addChildrenToNode(nodeId: NodeID, children: NodeID[]) {
+  addChildrenToNode(nodeId: NodeID, children: NodeID[], createNew = true) {
     const parentNode = this.getNode(nodeId);
     if (!parentNode) return;
 
-    const existingChildren = children.filter((childId) =>
-      this.getNode(childId)
-    );
-    if (parentNode.children === null) {
-      parentNode.children = existingChildren;
+    if (createNew) {
+      children.forEach((childId) => {
+        if (!this.getNode(childId)) {
+          this.addNode({ id: childId, children: null, parent: nodeId });
+        }
+      });
     } else {
-      parentNode.children.push(...existingChildren);
+      children = children.filter((childId) => this.getNode(childId));
+    }
+
+    children.forEach((childId) => {
+      const childNode = this.getNode(childId);
+      if (childNode) {
+        childNode.parent = nodeId;
+      }
+    });
+
+    if (parentNode.children === null) {
+      parentNode.children = children;
+    } else {
+      parentNode.children.push(...children);
     }
   }
 
@@ -83,4 +98,15 @@ class GeneralTree {
 
     delete this.nodes[nodeId];
   }
+
+  calculatePositions() {
+    return positionTree(this.nodes, this.getRoot().id);
+  }
 }
+
+const tree = new GeneralTree({ id: 0, children: null });
+tree.addChildrenToNode(0, [1, 2, 3, 4]);
+tree.addChildrenToNode(1, [10]);
+tree.addChildrenToNode(2, [5, 6]);
+tree.addChildrenToNode(4, [7, 8, 9]);
+console.log(tree.calculatePositions());
