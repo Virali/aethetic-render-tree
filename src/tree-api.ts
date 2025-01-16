@@ -103,10 +103,3 @@ class GeneralTree {
     return positionTree(this.nodes, this.getRoot().id);
   }
 }
-
-const tree = new GeneralTree({ id: 0, children: null });
-tree.addChildrenToNode(0, [1, 2, 3, 4]);
-tree.addChildrenToNode(1, [10]);
-tree.addChildrenToNode(2, [5, 6]);
-tree.addChildrenToNode(4, [7, 8, 9]);
-console.log(tree.calculatePositions());

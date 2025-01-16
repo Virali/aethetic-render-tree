@@ -6,7 +6,6 @@ export type TraversalNode = LinkedNode & {
   preliminary: number;
   modifier: number;
   position: PositionXY;
-  traversed: boolean;
 };
 
 export type InternalNode = TraversalNode & { children: NodeID[]; parent: NodeID };

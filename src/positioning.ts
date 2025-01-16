@@ -9,7 +9,7 @@ import type {
   SeparationValues,
   NodeGetter,
   NodeID,
-  NodesMap
+  NodesMap,
 } from "./types";
 
 type TraverseBasicProps = {
@@ -34,7 +34,7 @@ type SecondTraverseProps = TraverseBasicProps & {
 };
 
 // carrying to encapsulate some constants
-function firstTraversalCarrying({
+export function firstTraversalCarrying({
   initNode,
   initLevel,
   getNode,
@@ -87,11 +87,10 @@ function firstTraversalCarrying({
         node.preliminary = midpoint;
       }
     }
-    node.traversed = true;
   })(initNode, initLevel);
 }
 
-function secondTraversalCarrying({
+export function secondTraversalCarrying({
   initNode,
   initLevel = 0,
   getNode,
@@ -160,7 +159,7 @@ function apportionSubtreesCarrying({
     let compareDepth = 1;
     const depthToStop = maxDepth - level;
 
-    while (leftMost?.leftNeighbor && compareDepth <= depthToStop) {
+    while (leftMost?.leftNeighbor && compareDepth < depthToStop) {
       // Compute the location of Leftmost and where it should be with respect to Neighbor
       const neighbor = getNode(leftMost.leftNeighbor);
       let leftModSum = 0;
@@ -174,7 +173,8 @@ function apportionSubtreesCarrying({
           neighborAncestor.parent === null
         ) {
           throw Error(
-            "Tree structure is broken or max depth exceed tree depth"
+            "Tree structure is broken or max depth exceed tree depth",
+            { cause: node }
           );
         }
         leftMostAncestor = getNode(leftMostAncestor.parent);
@@ -213,7 +213,7 @@ function apportionSubtreesCarrying({
 
           const portion = moveDistance / (nodeIndex - neighborIndex);
 
-          for (let i = nodeIndex; i > neighborIndex; i--) {
+          for (let i = nodeIndex; i > neighborIndex && moveDistance > 0; i--) {
             const childToShift = getNode(commonParent.children[i]);
             childToShift.preliminary += moveDistance;
             childToShift.modifier += moveDistance;
@@ -238,13 +238,14 @@ function apportionSubtreesCarrying({
 export default function positionTree(
   nodesMap: NodesMap,
   rootId: number,
-  constants: SeparationValues = {
+  separation: SeparationValues = {
     siblingSpace: 100,
     meanNodeSize: 50,
     levelSeparation: 170,
     subtreeSeparation: 15,
   }
 ): PositionedNode[] {
+  // Clone for next mutations
   const nodesMapClone = structuredClone(nodesMap) as Record<
     NodeID,
     TraversalNode
@@ -257,21 +258,17 @@ export default function positionTree(
     nodeGetter
   );
 
-  firstTraversalCarrying({
+  const traversalProps = {
     initNode: nodes[0],
     initLevel: 0,
     getNode: nodeGetter,
     maxDepth: depth,
-    separation: constants,
-  });
+    separation,
+  };
 
-  secondTraversalCarrying({
-    initNode: nodes[0],
-    initLevel: 0,
-    getNode: nodeGetter,
-    maxDepth: depth,
-    separation: constants,
-  });
+  firstTraversalCarrying(traversalProps);
+
+  secondTraversalCarrying(traversalProps);
 
   return nodes;
 }

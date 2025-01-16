@@ -1,7 +1,7 @@
 {
   "name": "aesthetic-render-tree",
   "version": "1.0.0",
-  "description": "Library that helps you to get positions and relations of tree nodes or nodes of special DAG",
+  "description": "Library that helps you to get positions and relations of general tree nodes",
   "main": "index.js",
   "type": "commonjs",
   "directories": {
