@@ -1,8 +1,10 @@
 import { firstTraversalCarrying } from "../src/positioning";
 import { initIsoscelesTreeData, initSkewTreeData } from "./caseData";
 
-describe("firstTraversalCarrying", () => {
+describe("'firstTraversal' function", () => {
   const skewTreeData = initSkewTreeData();
+  const isoscelesTreeData = initIsoscelesTreeData();
+
   it("should place tree nodes according to separation values", () => {
     skewTreeData.forEach((caseData) => {
       const { tree, rootId, depth } = caseData.init();
@@ -22,7 +24,7 @@ describe("firstTraversalCarrying", () => {
   });
 
   it("should place subtree without shifting other subtrees if it fits", () => {
-    const { init, traversedTree, separation } = initIsoscelesTreeData();
+    const { init, traversedTree, separation } = isoscelesTreeData;
     const { tree, rootId, depth } = init();
     const getNode = (id: number) => tree[id];
 

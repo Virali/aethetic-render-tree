@@ -205,6 +205,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
     2: {
       id: 2,
@@ -213,6 +214,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
     3: {
       id: 3,
@@ -221,6 +223,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 2,
+      position: { x: 0, y: 0 },
     },
     4: {
       id: 4,
@@ -229,6 +232,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 3,
+      position: { x: 0, y: 0 },
     },
     5: {
       id: 5,
@@ -237,6 +241,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
     6: {
       id: 6,
@@ -245,6 +250,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 5,
+      position: { x: 0, y: 0 },
     },
     7: {
       id: 7,
@@ -253,6 +259,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 6,
+      position: { x: 0, y: 0 },
     },
     8: {
       id: 8,
@@ -261,6 +268,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 7,
+      position: { x: 0, y: 0 },
     },
     9: {
       id: 9,
@@ -269,6 +277,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
     10: {
       id: 10,
@@ -277,6 +286,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 9,
+      position: { x: 0, y: 0 },
     },
     11: {
       id: 11,
@@ -285,6 +295,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 10,
+      position: { x: 0, y: 0 },
     },
     12: {
       id: 12,
@@ -293,6 +304,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 11,
+      position: { x: 0, y: 0 },
     },
     13: {
       id: 13,
@@ -301,6 +313,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 12,
+      position: { x: 0, y: 0 },
     },
     14: {
       id: 14,
@@ -309,6 +322,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 13,
+      position: { x: 0, y: 0 },
     },
     15: {
       id: 15,
@@ -317,6 +331,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 14,
+      position: { x: 0, y: 0 },
     },
     16: {
       id: 16,
@@ -325,6 +340,7 @@ export const initIsoscelesTree = () => ({
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 15,
+      position: { x: 0, y: 0 },
     },
   } as unknown as Record<number, TraversalNode>,
   depth: 4,
@@ -332,135 +348,302 @@ export const initIsoscelesTree = () => ({
 
 export const initIsoscelesTreeData = () => ({
   init: initIsoscelesTree,
-  separation: { meanNodeSize: 10, siblingSpace: 5, subtreeSeparation: 4 },
+  separation: {
+    meanNodeSize: 10,
+    siblingSpace: 5,
+    subtreeSeparation: 4,
+    levelSeparation: 20,
+  },
   traversedTree: {
-    "1": {
+    1: {
       id: 1,
       children: [2, 3, 4],
       parent: null,
       preliminary: 52,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
-    "2": {
+    2: {
       id: 2,
       children: [5],
       parent: 1,
       preliminary: 22.5,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
-    "3": {
+    3: {
       id: 3,
       children: [6, 7],
       parent: 1,
       preliminary: 52,
       modifier: 44.5,
       leftNeighbor: 2,
+      position: { x: 0, y: 0 },
     },
-    "4": {
+    4: {
       id: 4,
       children: [8],
       parent: 1,
       preliminary: 81.5,
       modifier: 59,
       leftNeighbor: 3,
+      position: { x: 0, y: 0 },
     },
-    "5": {
+    5: {
       id: 5,
       children: [9, 10, 11, 12],
       parent: 2,
       preliminary: 22.5,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
-    "6": {
+    6: {
       id: 6,
       children: null,
       parent: 3,
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 5,
+      position: { x: 0, y: 0 },
     },
-    "7": {
+    7: {
       id: 7,
       children: null,
       parent: 3,
       preliminary: 15,
       modifier: 0,
       leftNeighbor: 6,
+      position: { x: 0, y: 0 },
     },
-    "8": {
+    8: {
       id: 8,
       children: [13, 14, 15, 16],
       parent: 4,
       preliminary: 22.5,
       modifier: 0,
       leftNeighbor: 7,
+      position: { x: 0, y: 0 },
     },
-    "9": {
+    9: {
       id: 9,
       children: null,
       parent: 5,
       preliminary: 0,
       modifier: 0,
       leftNeighbor: null,
+      position: { x: 0, y: 0 },
     },
-    "10": {
+    10: {
       id: 10,
       children: null,
       parent: 5,
       preliminary: 15,
       modifier: 0,
       leftNeighbor: 9,
+      position: { x: 0, y: 0 },
     },
-    "11": {
+    11: {
       id: 11,
       children: null,
       parent: 5,
       preliminary: 30,
       modifier: 0,
       leftNeighbor: 10,
+      position: { x: 0, y: 0 },
     },
-    "12": {
+    12: {
       id: 12,
       children: null,
       parent: 5,
       preliminary: 45,
       modifier: 0,
       leftNeighbor: 11,
+      position: { x: 0, y: 0 },
     },
-    "13": {
+    13: {
       id: 13,
       children: null,
       parent: 8,
       preliminary: 0,
       modifier: 0,
       leftNeighbor: 12,
+      position: { x: 0, y: 0 },
     },
-    "14": {
+    14: {
       id: 14,
       children: null,
       parent: 8,
       preliminary: 15,
       modifier: 0,
       leftNeighbor: 13,
+      position: { x: 0, y: 0 },
     },
-    "15": {
+    15: {
       id: 15,
       children: null,
       parent: 8,
       preliminary: 30,
       modifier: 0,
       leftNeighbor: 14,
+      position: { x: 0, y: 0 },
     },
-    "16": {
+    16: {
       id: 16,
       children: null,
       parent: 8,
       preliminary: 45,
       modifier: 0,
       leftNeighbor: 15,
+      position: { x: 0, y: 0 },
     },
   },
+  positionedTree: {
+    1: {
+      id: 1,
+      children: [ 2, 3, 4 ],
+      parent: null,
+      preliminary: 52,
+      modifier: 0,
+      leftNeighbor: null,
+      position: { x: 52, y: 0 }
+    },
+    2: {
+      id: 2,
+      children: [ 5 ],
+      parent: 1,
+      preliminary: 22.5,
+      modifier: 0,
+      leftNeighbor: null,
+      position: { x: 22.5, y: 20 }
+    },
+    3: {
+      id: 3,
+      children: [ 6, 7 ],
+      parent: 1,
+      preliminary: 52,
+      modifier: 44.5,
+      leftNeighbor: 2,
+      position: { x: 52, y: 20 }
+    },
+    4: {
+      id: 4,
+      children: [ 8 ],
+      parent: 1,
+      preliminary: 81.5,
+      modifier: 59,
+      leftNeighbor: 3,
+      position: { x: 81.5, y: 20 }
+    },
+    5: {
+      id: 5,
+      children: [ 9, 10, 11, 12 ],
+      parent: 2,
+      preliminary: 22.5,
+      modifier: 0,
+      leftNeighbor: null,
+      position: { x: 22.5, y: 40 }
+    },
+    6: {
+      id: 6,
+      children: null,
+      parent: 3,
+      preliminary: 0,
+      modifier: 0,
+      leftNeighbor: 5,
+      position: { x: 44.5, y: 40 }
+    },
+    7: {
+      id: 7,
+      children: null,
+      parent: 3,
+      preliminary: 15,
+      modifier: 0,
+      leftNeighbor: 6,
+      position: { x: 59.5, y: 40 }
+    },
+    8: {
+      id: 8,
+      children: [ 13, 14, 15, 16 ],
+      parent: 4,
+      preliminary: 22.5,
+      modifier: 0,
+      leftNeighbor: 7,
+      position: { x: 81.5, y: 40 }
+    },
+    9: {
+      id: 9,
+      children: null,
+      parent: 5,
+      preliminary: 0,
+      modifier: 0,
+      leftNeighbor: null,
+      position: { x: 0, y: 60 }
+    },
+    10: {
+      id: 10,
+      children: null,
+      parent: 5,
+      preliminary: 15,
+      modifier: 0,
+      leftNeighbor: 9,
+      position: { x: 15, y: 60 }
+    },
+    11: {
+      id: 11,
+      children: null,
+      parent: 5,
+      preliminary: 30,
+      modifier: 0,
+      leftNeighbor: 10,
+      position: { x: 30, y: 60 }
+    },
+    12: {
+      id: 12,
+      children: null,
+      parent: 5,
+      preliminary: 45,
+      modifier: 0,
+      leftNeighbor: 11,
+      position: { x: 45, y: 60 }
+    },
+    13: {
+      id: 13,
+      children: null,
+      parent: 8,
+      preliminary: 0,
+      modifier: 0,
+      leftNeighbor: 12,
+      position: { x: 59, y: 60 }
+    },
+    14: {
+      id: 14,
+      children: null,
+      parent: 8,
+      preliminary: 15,
+      modifier: 0,
+      leftNeighbor: 13,
+      position: { x: 74, y: 60 }
+    },
+    15: {
+      id: 15,
+      children: null,
+      parent: 8,
+      preliminary: 30,
+      modifier: 0,
+      leftNeighbor: 14,
+      position: { x: 89, y: 60 }
+    },
+    16: {
+      id: 16,
+      children: null,
+      parent: 8,
+      preliminary: 45,
+      modifier: 0,
+      leftNeighbor: 15,
+      position: { x: 104, y: 60 }
+    }
+  }
 });
