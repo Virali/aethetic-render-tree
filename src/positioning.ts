@@ -1,16 +1,14 @@
 import { makeTraversalNodes } from "./makeTraversalNodes";
 import type {
-  NodeLinkedById,
   TraversalNode,
   PositionedNode,
-  DefinitelyTruthy,
-  AlterableNode,
   InternalNode,
   SeparationValues,
   NodeGetter,
   NodeID,
   NodesMap,
 } from "./types";
+import { curry } from "./utils";
 
 type TraverseBasicProps = {
   initNode: TraversalNode;
@@ -33,40 +31,27 @@ type SecondTraverseProps = TraverseBasicProps & {
   };
 };
 
-// carrying to encapsulate some constants
-export function firstTraversalCarrying({
+/**
+ * Assign a preliminary x-coordinate and modifiers to nodes, modifiers will be used to move node offspring to the right. */
+export function firstTraversal({
   initNode,
-  initLevel,
+  initLevel = 0,
   getNode,
   maxDepth,
   separation: { siblingSpace, meanNodeSize, subtreeSeparation },
 }: FirstTraverseProps) {
-  const apportionSubtrees = apportionSubtreesCarrying({
+  const apportionSubtrees = carryApportionSubtrees({
     maxDepth,
     subtreeSeparation,
     meanNodeSize,
     getNode,
   });
+  const getLeftSiblingHOF = (node: TraversalNode) =>
+    getLeftSibling(node, getNode);
 
-  function getLeftSibling(node: TraversalNode): TraversalNode | false {
-    if (node.parent === null) return false;
-    const nodeSiblings = getNode(node.parent).children!;
-    const nodeIndex = nodeSiblings?.findIndex((id) => id === node.id);
-
-    if (nodeIndex === undefined || nodeIndex < 0)
-      throw Error("[LINKS_ERROR] parent doesn't have a linked child");
-
-    if (nodeIndex > 0) {
-      return getNode(nodeSiblings[nodeIndex - 1]);
-    }
-
-    return false;
-  }
-
-  // Assign a preliminary x-coordinate and modifiers to nodes, modifiers will be used to move node offspring to the right
-  return (function firstTraversal(node: TraversalNode, level: number) {
+  return (function firstTraversalInner(node: TraversalNode, level: number) {
     const { children } = node;
-    const leftSibling = getLeftSibling(node);
+    const leftSibling = getLeftSiblingHOF(node);
 
     if (leftSibling) {
       node.preliminary = leftSibling.preliminary + siblingSpace + meanNodeSize;
@@ -75,7 +60,7 @@ export function firstTraversalCarrying({
     if (children?.length) {
       const childrenRefs = children.map((id) => getNode(id));
       // that procedure assumes that parent preliminary will be always calculated after its children
-      childrenRefs.forEach((child) => firstTraversal(child, level + 1));
+      childrenRefs.forEach((child) => firstTraversalInner(child, level + 1));
 
       const midpoint =
         (childrenRefs[0].preliminary + childrenRefs.at(-1)!.preliminary) / 2;
@@ -90,15 +75,33 @@ export function firstTraversalCarrying({
   })(initNode, initLevel);
 }
 
-export function secondTraversalCarrying({
+function getLeftSibling(
+  node: TraversalNode,
+  getNode: NodeGetter
+): TraversalNode | false {
+  if (node.parent === null) return false;
+  const nodeSiblings = getNode(node.parent).children!;
+  const nodeIndex = nodeSiblings?.findIndex((id) => id === node.id);
+
+  if (nodeIndex === undefined || nodeIndex < 0)
+    throw Error("[LINKS_ERROR] parent doesn't have a linked child");
+
+  if (nodeIndex > 0) {
+    return getNode(nodeSiblings[nodeIndex - 1]);
+  }
+
+  return false;
+}
+/**
+ * Function summarize node preliminary with hereditary modifiers sum to set the x coordinate.*/
+export function secondTraversal({
   initNode,
   initLevel = 0,
   getNode,
   maxDepth,
   separation: { levelSeparation },
 }: SecondTraverseProps) {
-  // function summarize node preliminary with hereditary modifiers sum to set x coordinate
-  return (function secondTraversal(
+  return (function secondTraversalInner(
     node: TraversalNode,
     level: number,
     modSum: number // modifiers sum
@@ -106,19 +109,20 @@ export function secondTraversalCarrying({
     if (level > maxDepth) {
       return;
     }
-    // TODO: include position adjustment
     node.position.x = node.preliminary + modSum;
     node.position.y = levelSeparation * level;
 
     if (node.children?.length) {
       node.children.forEach((child) => {
-        secondTraversal(getNode(child), level + 1, modSum + node.modifier);
+        secondTraversalInner(getNode(child), level + 1, modSum + node.modifier);
       });
     }
   })(initNode, initLevel, 0);
 }
-
-function apportionSubtreesCarrying({
+/**
+ * function analyzes is there any frictions between subtrees, calculate how far we have to push apart subtrees, then change their preliminary and modifier.
+ */
+function carryApportionSubtrees({
   maxDepth,
   subtreeSeparation,
   meanNodeSize,
@@ -129,41 +133,18 @@ function apportionSubtreesCarrying({
   meanNodeSize: number;
   getNode: NodeGetter;
 }) {
-  function getLeftMostDescendant(
-    node: TraversalNode,
-    remainingDepth: number
-  ): TraversalNode | false {
-    if (remainingDepth <= 0) {
-      return node;
-    }
-    if (!node.children) {
-      return false;
-    } else {
-      let leftMost = getLeftMostDescendant(
-        getNode(node.children[0]),
-        --remainingDepth
-      );
-
-      for (let i = 1; i < node.children.length && leftMost === false; i++) {
-        leftMost ===
-          getLeftMostDescendant(getNode(node.children[i]), --remainingDepth);
-      }
-
-      return leftMost;
-    }
-  }
-
-  // analyze is there any frictions between subtrees, calculate how far we have to push apart subtrees, then change their preliminary and modifier
+  const getLeftMostDescendant = curryGetLeftMostDescendant(getNode);
   return function apportionSubtrees(node: TraversalNode, level: number) {
     let leftMost = node.children ? getNode(node.children[0]) : null;
     let compareDepth = 1;
     const depthToStop = maxDepth - level;
 
     while (leftMost?.leftNeighbor && compareDepth < depthToStop) {
-      // Compute the location of Leftmost and where it should be with respect to Neighbor
+      // Compute the location of Leftmost and where it should be with respect to neighbor
       const neighbor = getNode(leftMost.leftNeighbor);
       let leftModSum = 0;
-      let rightModSum = 0; // as we have a current node on the right and its level neighbor on the left
+      let rightModSum = 0;
+      // as we have a current node on the right and its level neighbor on the left
       let leftMostAncestor = leftMost;
       let neighborAncestor = neighbor;
 
@@ -234,6 +215,38 @@ function apportionSubtreesCarrying({
     }
   };
 }
+function curryGetLeftMostDescendant(getNode: NodeGetter) {
+  return curry(getLeftMostDescendant)(getNode);
+}
+function getLeftMostDescendant(
+  getNode: NodeGetter,
+  node: TraversalNode,
+  remainingDepth: number
+): TraversalNode | false {
+  if (remainingDepth <= 0) {
+    return node;
+  }
+  if (!node.children) {
+    return false;
+  } else {
+    let leftMost = getLeftMostDescendant(
+      getNode,
+      getNode(node.children[0]),
+      --remainingDepth
+    );
+
+    for (let i = 1; i < node.children.length && leftMost === false; i++) {
+      leftMost ===
+        getLeftMostDescendant(
+          getNode,
+          getNode(node.children[i]),
+          --remainingDepth
+        );
+    }
+
+    return leftMost;
+  }
+}
 
 export default function positionTree(
   nodesMap: NodesMap,
@@ -266,9 +279,9 @@ export default function positionTree(
     separation,
   };
 
-  firstTraversalCarrying(traversalProps);
+  firstTraversal(traversalProps);
 
-  secondTraversalCarrying(traversalProps);
+  secondTraversal(traversalProps);
 
   return nodes;
 }

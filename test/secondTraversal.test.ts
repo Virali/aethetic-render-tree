@@ -1,4 +1,4 @@
-import { secondTraversalCarrying } from "../src/positioning";
+import { secondTraversal } from "../src/positioning";
 import { TraversalNode } from "../src/types";
 import { initIsoscelesTreeData } from "./caseData";
 
@@ -11,7 +11,7 @@ describe("secondTraversal function", () => {
     const getNode = (id: number) =>
       (traversedTree as Record<number, TraversalNode>)[id];
 
-    secondTraversalCarrying({
+    secondTraversal({
       initNode: getNode(rootId),
       initLevel: 0,
       maxDepth: depth,

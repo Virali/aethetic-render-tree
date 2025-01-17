@@ -1,4 +1,4 @@
-import { firstTraversalCarrying } from "../src/positioning";
+import { firstTraversal } from "../src/positioning";
 import { initIsoscelesTreeData, initSkewTreeData } from "./caseData";
 
 describe("'firstTraversal' function", () => {
@@ -10,7 +10,7 @@ describe("'firstTraversal' function", () => {
       const { tree, rootId, depth } = caseData.init();
       const getNode = (id: number) => tree[id];
 
-      firstTraversalCarrying({
+      firstTraversal({
         initNode: tree[rootId],
         initLevel: 0,
         getNode,
@@ -28,7 +28,7 @@ describe("'firstTraversal' function", () => {
     const { tree, rootId, depth } = init();
     const getNode = (id: number) => tree[id];
 
-    firstTraversalCarrying({
+    firstTraversal({
       initNode: tree[rootId],
       initLevel: 0,
       getNode,
