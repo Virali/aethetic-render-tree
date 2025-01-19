@@ -283,5 +283,5 @@ export default function positionTree(
 
   secondTraversal(traversalProps);
 
-  return nodes;
+  return nodes as PositionedNode[];
 }
