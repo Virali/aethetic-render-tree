@@ -9,8 +9,11 @@
     "test": "test"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "jest"
+    "build": "npm run clean && tsc",
+    "test": "jest",
+    "clean": "npm run clean:win && npm run clean:lin",
+    "clean:win": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist build rmdir /Q /S build",
+    "clean:lin": "node -e \"if (process.platform !== 'win32') process.exit(1)\" || rm -rf build"
   },
   "keywords": [
     "render",
