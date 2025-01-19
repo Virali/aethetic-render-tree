@@ -1,5 +1,5 @@
 import positionTree from "./positioning";
-import { NodeLinkedById, NodeID, NodesMap } from "./types";
+import { NodeLinkedById, NodeID, NodesMap, SeparationValues } from "./types";
 
 export class GeneralTree {
   private nodes: NodesMap = {};
@@ -96,9 +96,10 @@ export class GeneralTree {
   }
   /**
    * Calculates positions of all nodes currently presented in a tree.
+   * @param {SeparationValues} [separation] - Optional separation values for positioning the nodes.
    */
-  calculatePositions() {
-    if (this.root) return positionTree(this.nodes, this.root.id);
+  calculatePositions(separation?: SeparationValues) {
+    if (this.root) return positionTree(this.nodes, this.root.id, separation);
     return new Error("Root is not defined");
   }
 }

@@ -252,10 +252,10 @@ export default function positionTree(
   nodesMap: NodesMap,
   rootId: number,
   separation: SeparationValues = {
-    siblingSpace: 100,
+    siblingSpace: 40,
     meanNodeSize: 50,
-    levelSeparation: 170,
-    subtreeSeparation: 15,
+    levelSeparation: 60,
+    subtreeSeparation: 20,
   }
 ): PositionedNode[] {
   // Clone for next mutations
