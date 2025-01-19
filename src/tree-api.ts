@@ -1,30 +1,7 @@
 import positionTree from "./positioning";
 import { NodeLinkedById, NodeID, NodesMap } from "./types";
 
-const SIMPLE_IDED_TREE: NodeLinkedById[] = [
-  {
-    id: 1,
-    parent: null,
-    children: [2, 3],
-  },
-  {
-    id: 2,
-    parent: 1,
-    children: [4],
-  },
-  {
-    id: 3,
-    parent: 1,
-    children: null,
-  },
-  {
-    id: 4,
-    parent: 2,
-    children: null,
-  },
-];
-
-class GeneralTree {
+export class GeneralTree {
   private nodes: NodesMap = {};
   private root: NodeLinkedById;
 
